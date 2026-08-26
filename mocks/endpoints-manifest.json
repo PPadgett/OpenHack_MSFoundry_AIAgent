@@ -1,0 +1,56 @@
+{
+  "bases": {
+    "pizza_api": "http://localhost:7071",
+    "registration_api": "http://localhost:7072",
+    "pizza_webapp": "http://localhost:4173",
+    "registration_webapp": "http://localhost:4174",
+    "pizza_mcp_sse": "http://localhost:8081/sse"
+  },
+  "http_routes": [
+    {
+      "name": "menu_lookup",
+      "method": "GET",
+      "path": "/api/menu",
+      "query": ["size", "crust", "topping_category"]
+    },
+    {
+      "name": "allergen_lookup",
+      "method": "GET",
+      "path": "/api/allergens",
+      "query": ["item_id", "allergen"]
+    },
+    {
+      "name": "price_calc",
+      "method": "POST",
+      "path": "/api/price"
+    },
+    {
+      "name": "order_submit",
+      "method": "POST",
+      "path": "/api/orders"
+    },
+    {
+      "name": "order_status",
+      "method": "GET",
+      "path": "/api/orders/{order_id}",
+      "query": ["customer_id"]
+    },
+    {
+      "name": "human_handoff",
+      "method": "POST",
+      "path": "/api/escalations"
+    },
+    {
+      "name": "health",
+      "method": "GET",
+      "path": "/health"
+    }
+  ],
+  "mcp_tools": [
+    "list_menu",
+    "create_order",
+    "get_order_status",
+    "cancel_order",
+    "get_customer_orders"
+  ]
+}

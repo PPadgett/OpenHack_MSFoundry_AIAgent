@@ -72,6 +72,8 @@ secrets/
 logs/
 *.log
 npm-debug.log
+mocks/logs/
+mocks/.run/
 
 # Temporary files
 tmp/
