@@ -35,6 +35,82 @@ The agent is connected to the live Contoso Pizza MCP endpoint:
 
 The system prompt explicitly includes the Contoso Pizza user ID so the agent can act on the correct account while guiding customers through ordering.
 
+## Documentation Hub
+
+Project documentation now lives in `docs/`:
+
+- [Documentation Index](docs/README.md)
+- [Agent and App Architecture Diagram](docs/architecture-agent-app.md)
+- [Build Pipeline Diagram](docs/build-pipeline.md)
+- [Data Schemas and Tool Contracts](docs/data-schemas-and-contracts.md)
+- [Docs Governance and GitHub Best Practices](docs/DOCS_GOVERNANCE.md)
+
+## API Endpoints Used by This Agent
+
+This section is the canonical endpoint inventory for Crust and reflects the current implementation in agent-definition, tool implementations, deployment config, and test config.
+
+### 1) MCP Endpoint (Live Ordering Capability Layer)
+
+- Base SSE endpoint: `https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse`
+- Configured MCP tools:
+  - `list_menu`
+  - `create_order`
+  - `get_order_status`
+  - `cancel_order`
+  - `get_customer_orders`
+
+### 2) Pizza API (REST)
+
+- Base URL: `https://func-pizza-api-ceki46omdafoe.azurewebsites.net/`
+- Runtime env var: `PIZZA_API_URL`
+
+| Tool | Method | Endpoint | Purpose |
+| --- | --- | --- | --- |
+| menu_lookup | GET | /api/menu | Retrieve menu items and availability |
+| allergen_lookup | GET | /api/allergens | Retrieve allergen and cross-contact data |
+| price_calc | POST | /api/price | Calculate subtotal, tax, fees, total |
+| order_submit | POST | /api/orders | Submit confirmed order (idempotent via order_id) |
+| order_status | GET | /api/orders/{order_id} | Retrieve order status and ETA |
+| human_handoff | POST | /api/escalations | Escalate to human support |
+
+### 3) Registration API (Configured Supporting Service)
+
+- Base URL: `https://func-registration-api-ceki46omdafoe.azurewebsites.net/`
+- Runtime env var: `REGISTRATION_API_URL`
+- Note: This URL is configured and available to the agent runtime, but current tool implementations in `tools/tool_implementations.py` do not directly call registration routes.
+
+### 4) Frontend Web App Endpoints
+
+- Pizza web app (agent-facing UI/test target): `https://green-bush-0d277aa0f.7.azurestaticapps.net/`
+  - Runtime env var: `PIZZA_WEBAPP_URL`
+  - Playwright baseURL default: same URL if env var is not set
+- Registration web app: `https://victorious-glacier-0bd2fb00f.7.azurestaticapps.net/`
+
+### 5) Operational / Health Endpoints
+
+- `/health` used by deployment health checks
+- `/api/menu` used by deployment health checks as an API availability probe
+
+### 6) Environment-Specific Base URLs
+
+The deployment config defines overrides for these environments:
+
+- Dev:
+  - `http://localhost:7071/` (pizza API)
+  - `http://localhost:7072/` (registration API)
+- Staging:
+  - `https://func-pizza-api-staging.azurewebsites.net/`
+  - `https://func-registration-api-staging.azurewebsites.net/`
+- Production:
+  - `https://func-pizza-api-ceki46omdafoe.azurewebsites.net/`
+  - `https://func-registration-api-ceki46omdafoe.azurewebsites.net/`
+
+### 7) Timeout / Retry Controls Used for API Calls
+
+- `API_TIMEOUT_SECONDS` (default: 30)
+- `API_MAX_RETRIES` (default: 3)
+- `API_RETRY_BACKOFF_SECONDS` (default: 2)
+
 ---
 
 ## Repository Structure
