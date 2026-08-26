@@ -484,6 +484,26 @@ Prerequisites:
 - Agent is already deployed and reachable
 - Optional env defaults: `FOUNDRY_AGENT_NAME`, `AZURE_RESOURCE_GROUP`, `FOUNDRY_LOCATION` (or `AZURE_REGION`)
 
+### Recommended: SDK Chat via Foundry + MCP
+
+If `az foundry` is unavailable in your CLI environment, use the SDK client below.
+This path talks to the production Foundry project and uses the live pizza MCP server tools.
+
+```powershell
+c:/Users/demouser/OpenHack_MSFoundry_AIAgent/.venv/Scripts/python.exe scripts/chat_foundry_mcp.py
+```
+
+The script expects:
+
+- `PROJECT_CONNECTION_STRING`
+- `PIZZA_MCP_URL`
+- `FOUNDRY_MODEL_DEPLOYMENT`
+
+Optional for order identity context:
+
+- `CONTOSO_PIZZA_USER_ID`
+- `CONTOSO_PIZZA_USER_LABEL`
+
 ---
 
 ## Testing Strategy
