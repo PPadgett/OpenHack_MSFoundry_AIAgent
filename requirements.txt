@@ -2,46 +2,46 @@
 # Pin versions for reproducibility
 
 # API & HTTP
-requests==2.31.0
-urllib3==2.0.7
+requests==2.34.2
+urllib3==2.7.0
 
 # Azure
-azure-identity==1.14.0
-azure-keyvault-secrets==4.7.0
-azure-storage-blob==12.18.3
-azure-cosmos==4.4.0
+azure-identity==1.25.3
+azure-keyvault-secrets==4.11.1
+azure-storage-blob==12.30.0
+azure-cosmos==4.16.3
 
 # Data validation & schema
-pydantic==2.11.7
-jsonschema==4.20.0
-PyYAML==6.0.2
+pydantic==2.13.4
+jsonschema==4.26.0
+PyYAML==6.0.3
 
 # Testing
-pytest==7.4.3
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-pytest-asyncio==0.21.1
-pytest-timeout==2.2.0
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-mock==3.15.1
+pytest-asyncio==1.4.0
+pytest-timeout==2.4.0
 
 # Code quality
-black==23.12.0
-pylint==3.0.3
-flake8==6.1.0
-mypy==1.7.1
-isort==5.13.2
-yamllint==1.37.1
+black==26.5.1
+pylint==4.0.7
+flake8==7.3.0
+mypy==2.3.1
+isort==8.0.1
+yamllint==1.38.0
 
 # Security
-bandit==1.7.5
-pip-audit==2.7.3
+bandit==1.9.4
+pip-audit==2.10.1
 
 # Logging & monitoring
-python-json-logger==2.0.7
+python-json-logger==4.2.0
 
 # Utilities
-python-dotenv==1.0.0
-click==8.1.7
+python-dotenv==1.2.3
+click==8.4.2
 
 # Optional: Development tools
-ipython==8.18.1
+ipython==9.16.1
 ipdb==0.13.13
