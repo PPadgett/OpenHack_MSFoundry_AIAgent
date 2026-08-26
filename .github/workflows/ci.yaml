@@ -273,13 +273,7 @@ jobs:
   build-approval:
     name: Build Approval Gate
     runs-on: ubuntu-latest
-    needs:
-      [
-        lint-and-validate,
-        unit-tests,
-        security-scan,
-        allergen-safety-tests,
-      ]
+    needs: [lint-and-validate, unit-tests, security-scan, allergen-safety-tests]
     steps:
       - name: Check all tests passed
         run: |
@@ -362,13 +356,7 @@ jobs:
   notify-failure:
     name: Notify on Failure
     runs-on: ubuntu-latest
-    needs:
-      [
-        lint-and-validate,
-        unit-tests,
-        security-scan,
-        allergen-safety-tests,
-      ]
+    needs: [lint-and-validate, unit-tests, security-scan, allergen-safety-tests]
     if: failure()
     steps:
       - name: Post failure notification
