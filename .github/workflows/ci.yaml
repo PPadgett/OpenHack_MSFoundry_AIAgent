@@ -16,6 +16,10 @@ on:
   schedule:
     - cron: "0 2 * * *" # Daily at 2 AM UTC
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   PIZZA_API_URL: ${{ secrets.PIZZA_API_URL }}
   PIZZA_WEBAPP_URL: ${{ secrets.PIZZA_WEBAPP_URL }}
