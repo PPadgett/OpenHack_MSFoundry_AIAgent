@@ -5,21 +5,21 @@ This page lists all project endpoints that should be mocked to run the lab offli
 ## External Base Endpoints in Current Lab
 
 - Pizza API
-	- Environment variable: PIZZA_API_URL
-	- Current URL: https://func-pizza-api-ceki46omdafoe.azurewebsites.net/
+  - Environment variable: PIZZA_API_URL
+  - Current URL: https://func-pizza-api-ceki46omdafoe.azurewebsites.net/
 - Registration API
-	- Environment variable: REGISTRATION_API_URL
-	- Current URL: https://func-registration-api-ceki46omdafoe.azurewebsites.net/
+  - Environment variable: REGISTRATION_API_URL
+  - Current URL: https://func-registration-api-ceki46omdafoe.azurewebsites.net/
 - Pizza Web App
-	- Environment variable: PIZZA_WEBAPP_URL
-	- Current URL: https://green-bush-0d277aa0f.7.azurestaticapps.net/
+  - Environment variable: PIZZA_WEBAPP_URL
+  - Current URL: https://green-bush-0d277aa0f.7.azurestaticapps.net/
 - Registration Web App
-	- Environment variable: REGISTRATION_WEBAPP_URL
-	- Current URL: https://victorious-glacier-0bd2fb00f.7.azurestaticapps.net/
+  - Environment variable: REGISTRATION_WEBAPP_URL
+  - Current URL: https://victorious-glacier-0bd2fb00f.7.azurestaticapps.net/
 - Contoso MCP SSE
-	- Environment variable: PIZZA_MCP_URL
-	- Current URL:
-		https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse
+  - Environment variable: PIZZA_MCP_URL
+  - Current URL:
+    https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse
 
 ## Tool API Routes to Mock
 
