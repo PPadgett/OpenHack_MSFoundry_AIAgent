@@ -5,11 +5,13 @@ metadata:
   namespace: default
 
 data:
-  # Pizza API Endpoints (Production)
+  # Contoso Pizza MCP and supporting endpoints (Production)
   pizza_api_url: "https://func-pizza-api-ceki46omdafoe.azurewebsites.net/"
   pizza_mcp_url: "https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse"
+  contoso_pizza_user_id: "<CONTOSO_PIZZA_USER_ID>"
+  contoso_pizza_user_label: "contoso-pizza-user"
   pizza_webapp_url: "https://green-bush-0d277aa0f.7.azurestaticapps.net/"
-  
+
   # Registration API Endpoints (Production)
   registration_api_url: "https://func-registration-api-ceki46omdafoe.azurewebsites.net/"
   registration_webapp_url: "https://victorious-glacier-0bd2fb00f.7.azurestaticapps.net/"
@@ -18,7 +20,7 @@ data:
   api_timeout_seconds: "30"
   api_max_retries: "3"
   api_retry_backoff_seconds: "2"
-  
+
   # Tool Configuration
   menu_lookup_endpoint: "/api/menu"
   allergen_lookup_endpoint: "/api/allergens"
@@ -26,20 +28,20 @@ data:
   order_submit_endpoint: "/api/orders"
   order_status_endpoint: "/api/orders/{order_id}"
   human_handoff_endpoint: "/api/escalations"
-  
+
   # Authentication
-  auth_type: "bearer"  # Managed by Azure AD / MSI
-  
+  auth_type: "bearer" # Managed by Azure AD / MSI
+
   # Logging
   log_level: "INFO"
   audit_log_retention_days: "90"
-  
+
   # Safety
   prompt_shields_enabled: "true"
   content_filters_enabled: "true"
-  
+
   # Memory
-  memory_store_enabled: "false"  # Set to true for Foundry Memory Store (preview)
+  memory_store_enabled: "false" # Set to true for Foundry Memory Store (preview)
   memory_ttl_days: "365"
 
 ---
@@ -54,13 +56,13 @@ stringData:
   # API Keys (stored in Azure Key Vault; reference here)
   pizza_api_key: "${PIZZA_API_KEY}"
   registration_api_key: "${REGISTRATION_API_KEY}"
-  
+
   # Database Connection (for profile storage)
   profile_db_connection_string: "${PROFILE_DB_CONNECTION_STRING}"
-  
+
   # Encryption Key (CMK reference)
   cmk_key_id: "${CMK_KEY_ID}"
-  
+
   # Foundry Agent Credentials
   foundry_agent_id: "${FOUNDRY_AGENT_ID}"
   foundry_api_key: "${FOUNDRY_API_KEY}"
@@ -79,14 +81,14 @@ spec:
       pizza_api_url: "http://localhost:7071/"
       registration_api_url: "http://localhost:7072/"
       log_level: "DEBUG"
-      prompt_shields_enabled: "false"  # Disabled in dev
-    
+      prompt_shields_enabled: "false" # Disabled in dev
+
     staging:
       pizza_api_url: "https://func-pizza-api-staging.azurewebsites.net/"
       registration_api_url: "https://func-registration-api-staging.azurewebsites.net/"
       log_level: "INFO"
       prompt_shields_enabled: "true"
-    
+
     production:
       pizza_api_url: "https://func-pizza-api-ceki46omdafoe.azurewebsites.net/"
       registration_api_url: "https://func-registration-api-ceki46omdafoe.azurewebsites.net/"
@@ -100,7 +102,7 @@ spec:
       auto_scale_enabled: true
       min_instances: 2
       max_instances: 10
-    
+
     - type: "azure_foundry"
       region: "westus3"
       auto_scale_enabled: true
@@ -113,8 +115,8 @@ spec:
       interval_seconds: 30
       timeout_seconds: 5
       failure_threshold: 3
-    
-    - endpoint: "/api/menu"  # Test menu_lookup availability
+
+    - endpoint: "/api/menu" # Test menu_lookup availability
       interval_seconds: 60
       timeout_seconds: 10
       failure_threshold: 2

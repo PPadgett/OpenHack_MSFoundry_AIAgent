@@ -7,6 +7,7 @@ import os
 import json
 import uuid
 import logging
+import math
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from enum import Enum
@@ -58,6 +59,18 @@ class PriceCalculation:
     delivery_fee: float
     total: float
     calculated_at: str
+
+
+@dataclass(frozen=True)
+class PizzaQuantityRecommendation:
+    """Immutable recommendation for group pizza quantity."""
+    number_of_people: int
+    appetite_level: str
+    slices_per_person: float
+    slices_per_pizza: int
+    estimated_total_slices: int
+    recommended_pizzas: int
+    suggestion_notes: List[str]
 
 
 @dataclass(frozen=True)
@@ -314,6 +327,74 @@ class PriceCalculator:
         return calculation
 
 
+class PizzaQuantityEstimator:
+    """Deterministic pizza quantity estimate based on group size and appetite."""
+
+    SLICES_BY_APPETITE = {
+        "light": 2.0,
+        "average": 2.75,
+        "hungry": 3.5,
+    }
+
+    @staticmethod
+    def estimate(number_of_people: int,
+                 appetite_level: str,
+                 slices_per_pizza: int = 8) -> PizzaQuantityRecommendation:
+        """
+        Estimate how much pizza a group needs.
+
+        Args:
+            number_of_people: Number of diners in the group.
+            appetite_level: One of light, average, hungry.
+            slices_per_pizza: Expected slices per pizza (default: 8).
+
+        Returns:
+            PizzaQuantityRecommendation with deterministic suggestion.
+        """
+        if number_of_people < 1:
+            raise ValueError("number_of_people must be >= 1")
+
+        normalized_appetite = appetite_level.strip().lower()
+        if normalized_appetite not in PizzaQuantityEstimator.SLICES_BY_APPETITE:
+            raise ValueError("appetite_level must be one of: light, average, hungry")
+
+        if slices_per_pizza < 4:
+            raise ValueError("slices_per_pizza must be >= 4")
+
+        slices_per_person = PizzaQuantityEstimator.SLICES_BY_APPETITE[normalized_appetite]
+        safety_buffer = max(1, math.ceil(number_of_people * 0.1))
+        estimated_total_slices = math.ceil((number_of_people * slices_per_person) + safety_buffer)
+        recommended_pizzas = math.ceil(estimated_total_slices / slices_per_pizza)
+
+        notes = [
+            f"Estimate assumes {slices_per_person:.2f} slices/person for '{normalized_appetite}' appetite.",
+            "Recommendation includes a small buffer so the group is less likely to run short.",
+        ]
+        if recommended_pizzas >= 3:
+            notes.append("Suggestion: split across cheese, meat, and veggie options for variety.")
+        else:
+            notes.append("Suggestion: include at least one broadly popular option like classic cheese.")
+
+        recommendation = PizzaQuantityRecommendation(
+            number_of_people=number_of_people,
+            appetite_level=normalized_appetite,
+            slices_per_person=slices_per_person,
+            slices_per_pizza=slices_per_pizza,
+            estimated_total_slices=estimated_total_slices,
+            recommended_pizzas=recommended_pizzas,
+            suggestion_notes=notes,
+        )
+
+        logger.info(
+            "pizza_quantity_estimate: people=%s appetite=%s pizzas=%s",
+            number_of_people,
+            normalized_appetite,
+            recommended_pizzas,
+        )
+
+        return recommendation
+
+
 class OrderSubmitter:
     """POST /api/orders - Submit order (idempotent with order_id key, immutable state)."""
     
@@ -500,6 +581,7 @@ TOOLS = {
     'menu_lookup': MenuLookup.lookup,
     'allergen_lookup': AllergenLookup.lookup,
     'price_calc': PriceCalculator.calculate,
+    'pizza_quantity_estimate': PizzaQuantityEstimator.estimate,
     'order_submit': OrderSubmitter.submit,
     'order_status': OrderStatusChecker.check,
     'human_handoff': HumanHandoff.escalate,

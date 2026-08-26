@@ -23,14 +23,20 @@
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "UUID (idempotency key; generate if new, reuse if retry)" }
+                "description": {
+                  "type": "string",
+                  "const": "UUID (idempotency key; generate if new, reuse if retry)"
+                }
               }
             },
             "customer_id": {
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "UUID of customer (from memory or new)" }
+                "description": {
+                  "type": "string",
+                  "const": "UUID of customer (from memory or new)"
+                }
               }
             },
             "items": {
@@ -42,9 +48,15 @@
                   "properties": {
                     "type": { "type": "string", "const": "object" },
                     "properties": {
-                      "item_id": { "type": { "type": "string", "const": "string" } },
-                      "quantity": { "type": { "type": "string", "const": "integer" } },
-                      "special_instructions": { "type": { "type": "string", "const": "string" } }
+                      "item_id": {
+                        "type": { "type": "string", "const": "string" }
+                      },
+                      "quantity": {
+                        "type": { "type": "string", "const": "integer" }
+                      },
+                      "special_instructions": {
+                        "type": { "type": "string", "const": "string" }
+                      }
                     }
                   }
                 }
@@ -65,7 +77,10 @@
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "Delivery address (required for delivery)" }
+                "description": {
+                  "type": "string",
+                  "const": "Delivery address (required for delivery)"
+                }
               }
             },
             "fulfillment_time": {
@@ -73,7 +88,10 @@
               "properties": {
                 "type": { "type": "string", "const": "string" },
                 "format": { "type": "string", "const": "date-time" },
-                "description": { "type": "string", "const": "Pickup/delivery time in ISO 8601 format" }
+                "description": {
+                  "type": "string",
+                  "const": "Pickup/delivery time in ISO 8601 format"
+                }
               }
             },
             "allergen_flags": {
@@ -86,21 +104,33 @@
                     "type": { "type": "string", "const": "string" }
                   }
                 },
-                "description": { "type": "string", "const": "Customer-stated allergies (for kitchen flagging, NOT for safety declaration)" }
+                "description": {
+                  "type": "string",
+                  "const": "Customer-stated allergies (for kitchen flagging, NOT for safety declaration)"
+                }
               }
             },
             "special_requests": {
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "Any other notes for the kitchen" }
+                "description": {
+                  "type": "string",
+                  "const": "Any other notes for the kitchen"
+                }
               }
             }
           }
         },
         "required": {
           "type": "array",
-          "const": ["order_id", "customer_id", "items", "fulfillment_type", "fulfillment_time"]
+          "const": [
+            "order_id",
+            "customer_id",
+            "items",
+            "fulfillment_type",
+            "fulfillment_time"
+          ]
         }
       }
     }

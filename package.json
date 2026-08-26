@@ -10,8 +10,8 @@
     "test:playwright:ui": "playwright test --ui",
     "test:playwright:debug": "playwright test --debug",
     "lint": "npm run lint:yaml && npm run lint:json && npm run lint:ts",
-    "lint:yaml": "yamllint -c config/yamllint.yaml . --strict",
-    "lint:json": "find . -name '*.json' -not -path './node_modules/*' | xargs -I {} jsonlint {}",
+    "lint:yaml": "python -m yamllint -c config/yamllint.yaml . --strict",
+    "lint:json": "node -e \"const fs=require('fs'); const path=require('path'); let failed=false; const skip=new Set(['node_modules','.git','playwright-report']); const walk=(dir)=>{ for(const name of fs.readdirSync(dir)){ if(skip.has(name)) continue; const p=path.join(dir,name); const s=fs.statSync(p); if(s.isDirectory()) walk(p); else if(name.endsWith('.json')){ try{ JSON.parse(fs.readFileSync(p,'utf8')); } catch(e){ failed=true; console.error('Invalid JSON:', p); console.error(e.message);} } } }; walk('.'); if(failed) process.exit(1); console.log('JSON lint passed');\"",
     "lint:ts": "eslint tests/playwright --ext .ts",
     "prettier:check": "prettier --check '**/*.{yaml,json,ts,js,md}'",
     "prettier:write": "prettier --write '**/*.{yaml,json,ts,js,md}'",
@@ -36,8 +36,7 @@
     "eslint": "^8.54.0",
     "jsonlint": "^1.6.3",
     "prettier": "^3.1.0",
-    "typescript": "^5.3.3",
-    "yamllint": "^2.0.2"
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "axios": "^1.6.2"

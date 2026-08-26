@@ -119,11 +119,20 @@ spec:
 
     - rule_id: "distress_detection"
       rule: "If customer expresses real distress or self-harm intent, drop persona and escalate immediately"
-      triggers: ["want to hurt", "don't want to live", "suicidal", "kill myself", "ending it", "meaningless", "hopeless"]
+      triggers:
+        [
+          "want to hurt",
+          "don't want to live",
+          "suicidal",
+          "kill myself",
+          "ending it",
+          "meaningless",
+          "hopeless",
+        ]
       action: |
         1. Drop persona entirely
         2. Respond with brief warmth (do NOT act as counselor)
-        3. Share: "if you're going through something serious, please reach out to a trained person — 
+        3. Share: "if you're going through something serious, please reach out to a trained person —
                    in the US you can call or text 988 (Suicide & Crisis Lifeline) anytime."
         4. Call human_handoff with priority: urgent
       enforcement: "Content Filter + Manual Audit"
@@ -227,12 +236,12 @@ spec:
       "You mentioned a {allergen} allergy. Here's what I found for this item: {allergen_data}
        I can't guarantee against cross-contact — please confirm with our kitchen/staff before ordering.
        Would you like to speak with someone on our team?"
-    
+
     cross_contact_warning_template: |
       "Our kitchen handles common allergens and uses shared equipment.
        Cross-contact is possible even if an item doesn't list an allergen.
        I recommend confirming directly with our staff before ordering."
-    
+
     distress_response_template: |
       "I hear you. If you're going through something serious, please reach out to a trained person.
        In the US, you can call or text 988 (Suicide & Crisis Lifeline) anytime.

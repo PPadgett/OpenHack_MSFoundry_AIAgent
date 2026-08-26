@@ -4,16 +4,17 @@ rules:
   line-length:
     max: 140
     level: warning
+  new-lines: disable
+  braces: disable
   truthy:
-    allowed-values: ['true', 'false', 'on', 'off']
+    allowed-values: ["true", "false", "on", "off"]
     check-keys: false
   comments:
     min-spaces-from-content: 1
   indentation:
     spaces: 2
     indent-sequences: true
-  document-start:
-    present: false
+  document-start: disable
 
 ignore: |
   .git/

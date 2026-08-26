@@ -14,6 +14,7 @@ SCHEMA_FILES = [
     Path("tools/menu_lookup.json"),
     Path("tools/allergen_lookup.json"),
     Path("tools/price_calc.json"),
+    Path("tools/pizza_quantity_estimate.json"),
     Path("tools/order_submit.json"),
     Path("tools/order_status.json"),
     Path("tools/human_handoff.json"),

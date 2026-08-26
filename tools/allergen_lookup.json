@@ -23,7 +23,10 @@
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "Menu item ID (from menu_lookup response)" }
+                "description": {
+                  "type": "string",
+                  "const": "Menu item ID (from menu_lookup response)"
+                }
               }
             },
             "allergen_filter": {
@@ -33,7 +36,18 @@
                 "enum": {
                   "type": "array",
                   "items": { "type": "string" },
-                  "const": ["peanuts", "tree_nuts", "milk", "eggs", "fish", "shellfish", "wheat", "soy", "sesame", "all"]
+                  "const": [
+                    "peanuts",
+                    "tree_nuts",
+                    "milk",
+                    "eggs",
+                    "fish",
+                    "shellfish",
+                    "wheat",
+                    "soy",
+                    "sesame",
+                    "all"
+                  ]
                 },
                 "description": { "type": "string" }
               }

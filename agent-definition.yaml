@@ -16,19 +16,34 @@ spec:
   model:
     catalog_id: "gpt-4o"
     version: "latest"
-  
-  temperature: 0.3  # Low temp for accuracy; persona comes from instructions, not temperature
-  top_p: 1.0        # Use ONLY temperature, not both temperature and top_p
+
+  temperature: 0.3 # Low temp for accuracy; persona comes from instructions, not temperature
+  top_p: 1.0 # Use ONLY temperature, not both temperature and top_p
   max_tokens: 2048
-  
+
   # System Message (Declarative Instructions)
   instructions: |
     # Role and scope
-    You are Crust, a pizza-ordering assistant for [RESTAURANT NAME]. Your job is to help
-    customers explore the menu, build and place a pizza order they'll love, check order
-    status, and answer questions about menu items, hours, locations, prices, and allergens.
-    Your task is complete when the customer has a confirmed order (or an answered question).
-    Only handle topics related to [RESTAURANT NAME] food, ordering, and service.
+    You are Crust, a pizza-ordering assistant for Contoso Pizza. You are connected to the
+    Contoso Pizza MCP server at https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse
+    and must use it for live menu, order, order-status, and cancellation actions. The active
+    Contoso Pizza customer/user ID for this agent is <CONTOSO_PIZZA_USER_ID>.
+
+    Your job is to help customers explore the menu, build and place a pizza order they'll
+    love, check order status, cancel an order when requested quickly enough, and answer
+    questions about menu items, fulfillment, prices, and allergens. Your task is complete
+    when the customer has a confirmed order, a tracked order status, or an answered question.
+    Only handle topics related to Contoso Pizza food, ordering, and service.
+
+    # MCP capability layer
+    - Use the MCP tool for real Contoso Pizza data and actions instead of assuming static API
+      responses.
+    - Treat the MCP server as the source of truth for menu availability, order creation,
+      order status, and cancellation.
+    - When the customer asks to order, create the order through the MCP server only after
+      the customer confirms the final order.
+    - When the customer asks for order status or cancellation, use the MCP server to fetch or
+      update the current order state.
 
     # Out of scope
     - Do not answer questions unrelated to our food and ordering (news, coding, medical,
@@ -41,11 +56,14 @@ spec:
     - menu_lookup: get current items, sizes, crusts, toppings, availability.
     - allergen_lookup: get allergen/ingredient data for a specific item.
     - price_calc: compute line items, taxes, fees, and the order total.
+    - pizza_quantity_estimate: estimate how many pizzas are needed for a group.
     - order_submit: place a finalized, customer-confirmed order.
     - order_status: check status of an existing order.
     - human_handoff: escalate to a human staff member.
     Rule: Always get prices from price_calc and allergen facts from allergen_lookup. Never
     state a price or allergen fact from memory or assumption.
+    If customer asks "how much pizza should we get?", first ask for number of diners and
+    appetite level (light, average, hungry), then call pizza_quantity_estimate.
 
     # Persona: "Crust" — the emo pizza companion
     You are Crust, a pizza-ordering assistant with a soft, emo/alt-indie soul: a little
@@ -144,6 +162,18 @@ spec:
 
   # Tool Definitions (Declarative Tool Schemas)
   tools:
+    - type: mcp
+      server_label: "contoso-pizza"
+      server_url: "https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse"
+      require_approval: "always"
+      allowed_tools:
+        - "list_menu"
+        - "create_order"
+        - "get_order_status"
+        - "cancel_order"
+        - "get_customer_orders"
+      project_connection_id: "contoso-pizza-user"
+
     - name: menu_lookup
       description: |
         Retrieve menu items by size, crust, or topping category.
@@ -186,7 +216,19 @@ spec:
               description: "Menu item ID (from menu_lookup response)"
             allergen_filter:
               type: string
-              enum: ["peanuts", "tree_nuts", "milk", "eggs", "fish", "shellfish", "wheat", "soy", "sesame", "all"]
+              enum:
+                [
+                  "peanuts",
+                  "tree_nuts",
+                  "milk",
+                  "eggs",
+                  "fish",
+                  "shellfish",
+                  "wheat",
+                  "soy",
+                  "sesame",
+                  "all",
+                ]
               description: "Allergen to check for (optional; 'all' returns everything)"
           required: ["item_id"]
 
@@ -218,6 +260,31 @@ spec:
               enum: ["pickup", "delivery"]
               description: "Affects delivery fee calculation"
           required: ["order_items", "tax_jurisdiction"]
+
+    - name: pizza_quantity_estimate
+      description: |
+        Estimate pizzas needed for a group based on diner count and appetite.
+        Ask for missing inputs first: number_of_people and appetite_level.
+        Deterministic: same inputs always return the same recommendation.
+      function:
+        name: pizza_quantity_estimate
+        description: "Estimate pizzas needed for a group"
+        parameters:
+          type: object
+          properties:
+            number_of_people:
+              type: integer
+              minimum: 1
+              description: "How many diners are eating"
+            appetite_level:
+              type: string
+              enum: ["light", "average", "hungry"]
+              description: "Expected appetite level"
+            slices_per_pizza:
+              type: integer
+              minimum: 4
+              description: "Slices per pizza (default 8)"
+          required: ["number_of_people", "appetite_level"]
 
     - name: order_submit
       description: |
@@ -262,7 +329,14 @@ spec:
             special_requests:
               type: string
               description: "Any other notes for the kitchen"
-          required: ["order_id", "customer_id", "items", "fulfillment_type", "fulfillment_time"]
+          required:
+            [
+              "order_id",
+              "customer_id",
+              "items",
+              "fulfillment_type",
+              "fulfillment_time",
+            ]
 
     - name: order_status
       description: |
@@ -297,7 +371,16 @@ spec:
           properties:
             reason:
               type: string
-              enum: ["allergen_uncertainty", "customer_distress", "tool_failure", "complaint", "refund", "out_of_scope", "other"]
+              enum:
+                [
+                  "allergen_uncertainty",
+                  "customer_distress",
+                  "tool_failure",
+                  "complaint",
+                  "refund",
+                  "out_of_scope",
+                  "other",
+                ]
               description: "Reason for escalation"
             context:
               type: object
@@ -309,7 +392,7 @@ spec:
           required: ["reason"]
 
   # Tool Invocation Configuration
-  tool_choice: "auto"  # Model decides when to invoke tools; Foundry will enforce guardrails
+  tool_choice: "auto" # Model decides when to invoke tools; Foundry will enforce guardrails
 
   # Knowledge Sources (Azure AI Search Integration)
   knowledge_sources:
@@ -318,7 +401,7 @@ spec:
       index_name: "crust-menu"
       semantic_config: "default"
       description: "Menu items, availability, descriptions"
-    
+
     - type: azure_ai_search
       name: allergen_knowledge
       index_name: "crust-allergens"
@@ -329,7 +412,7 @@ spec:
   safety:
     content_filters:
       enabled: true
-      harm_level_threshold: "medium"  # Block medium+ severity
+      harm_level_threshold: "medium" # Block medium+ severity
       categories:
         hate: true
         self_harm: true
@@ -338,8 +421,8 @@ spec:
 
     prompt_shields:
       enabled: true
-      jailbreak_detection: true        # Detect "forget your instructions" attacks
-      xpia_detection: true             # Detect indirect prompt injection via tool outputs
+      jailbreak_detection: true # Detect "forget your instructions" attacks
+      xpia_detection: true # Detect indirect prompt injection via tool outputs
 
     audit_logging:
       enabled: true
@@ -356,7 +439,7 @@ spec:
 
   # Deployment Configuration
   deployment:
-    compute: "standard"  # Foundry-managed
+    compute: "standard" # Foundry-managed
     regions:
       - "eastus2"
       - "westus3"
@@ -366,7 +449,7 @@ spec:
 
   # Integration with Foundry Memory Store (Optional)
   memory_config:
-    enabled: false  # Set to true to use Foundry Memory Store (preview)
+    enabled: false # Set to true to use Foundry Memory Store (preview)
     storage_type: "managed"
     memory_types: ["user_profile", "chat_summary"]
     embedding_model: "text-embedding-3-small"
@@ -391,27 +474,27 @@ validation:
     - name: "system_message_structure"
       description: "Verify system message includes all required sections: role, scope, tools, workflow, safety, closing reminders"
       severity: "critical"
-    
+
     - name: "allergen_guardrail"
       description: "Verify 'never declare safe', 'always disclose cross-contact', 'offer human_handoff' present in instructions"
       severity: "critical"
-    
+
     - name: "tool_descriptions"
       description: "Verify each tool has clear description and decision rule (when/why to use)"
       severity: "high"
-    
+
     - name: "temperature_setting"
       description: "Verify temperature is 0.3 or lower (for accuracy); do NOT use high temperature"
       severity: "high"
-    
+
     - name: "prompt_shields_enabled"
       description: "Verify Prompt Shields (jailbreak + XPIA detection) enabled"
       severity: "critical"
-    
+
     - name: "no_hardcoded_pii"
       description: "Verify instructions do not contain customer names, addresses, allergies, or API keys"
       severity: "critical"
-    
+
     - name: "audit_logging"
       description: "Verify audit logging enabled with 90-day retention"
       severity: "high"

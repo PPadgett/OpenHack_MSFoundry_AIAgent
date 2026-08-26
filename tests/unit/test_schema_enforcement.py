@@ -99,6 +99,11 @@ class TestToolContractTypes:
                 "order_submit",
                 ["order_id", "customer_id", "items", "fulfillment_type", "fulfillment_time"],
             ),
+            (
+                "tools/pizza_quantity_estimate.json",
+                "pizza_quantity_estimate",
+                ["number_of_people", "appetite_level"],
+            ),
             ("tools/allergen_lookup.json", "allergen_lookup", ["item_id"]),
             ("tools/order_status.json", "order_status", ["order_id"]),
         ],
@@ -120,3 +125,11 @@ class TestToolContractTypes:
         assert props["fulfillment_type"]["properties"]["type"]["const"] == "string"
         assert props["items"]["properties"]["type"]["const"] == "array"
         assert props["allergen_flags"]["properties"]["items"]["properties"]["type"]["const"] == "string"
+
+    def test_pizza_quantity_contract_has_expected_scalar_types(self) -> None:
+        schema_obj = _load_json("tools/pizza_quantity_estimate.json")
+        props = schema_obj["properties"]["parameters"]["properties"]["properties"]["properties"]
+
+        assert props["number_of_people"]["properties"]["type"]["const"] == "integer"
+        assert props["appetite_level"]["properties"]["type"]["const"] == "string"
+        assert props["slices_per_pizza"]["properties"]["type"]["const"] == "integer"

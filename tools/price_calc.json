@@ -28,19 +28,29 @@
                   "properties": {
                     "type": { "type": "string", "const": "object" },
                     "properties": {
-                      "item_id": { "type": { "type": "string", "const": "string" } },
-                      "quantity": { "type": { "type": "string", "const": "integer" } }
+                      "item_id": {
+                        "type": { "type": "string", "const": "string" }
+                      },
+                      "quantity": {
+                        "type": { "type": "string", "const": "integer" }
+                      }
                     }
                   }
                 },
-                "description": { "type": "string", "const": "Array of {item_id, quantity}" }
+                "description": {
+                  "type": "string",
+                  "const": "Array of {item_id, quantity}"
+                }
               }
             },
             "tax_jurisdiction": {
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "State/province for tax calculation (e.g., 'CA', 'NY')" }
+                "description": {
+                  "type": "string",
+                  "const": "State/province for tax calculation (e.g., 'CA', 'NY')"
+                }
               }
             },
             "fulfillment_type": {

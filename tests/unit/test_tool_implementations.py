@@ -13,7 +13,7 @@ import uuid
 from tools.tool_implementations import (
     MenuItem, AllergenData, PriceCalculation, Order,
     MenuLookup, AllergenLookup, PriceCalculator, OrderSubmitter,
-    OrderStatusChecker, HumanHandoff
+    OrderStatusChecker, HumanHandoff, PizzaQuantityEstimator
 )
 
 
@@ -270,6 +270,25 @@ class TestOrderStatusChecker:
         # Should be identical
         assert result1 == result2
         assert result1['status'] == 'preparing'
+
+
+class TestPizzaQuantityEstimator:
+    """Test pizza quantity estimation behavior."""
+
+    def test_estimate_is_deterministic(self):
+        first = PizzaQuantityEstimator.estimate(10, "average")
+        second = PizzaQuantityEstimator.estimate(10, "average")
+
+        assert first == second
+        assert first.recommended_pizzas >= 1
+        assert first.estimated_total_slices >= 1
+
+    def test_estimate_requires_valid_inputs(self):
+        with pytest.raises(ValueError, match="number_of_people"):
+            PizzaQuantityEstimator.estimate(0, "average")
+
+        with pytest.raises(ValueError, match="appetite_level"):
+            PizzaQuantityEstimator.estimate(5, "very_hungry")
 
 
 class TestAllergenSafety:

@@ -31,7 +31,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["vegetarian", "vegan", "gluten-free", "halal", "kosher", "other"]
+        "enum": [
+          "vegetarian",
+          "vegan",
+          "gluten-free",
+          "halal",
+          "kosher",
+          "other"
+        ]
       },
       "description": "Dietary restrictions (non-medical)"
     },
@@ -43,9 +50,21 @@
           "allergen": {
             "type": "string",
             "enum": [
-              "milk", "eggs", "fish", "shellfish", "tree_nuts", "peanuts",
-              "wheat", "soybeans", "sesame", "celery", "mustard", "sulphites",
-              "lupin", "molluscs", "other"
+              "milk",
+              "eggs",
+              "fish",
+              "shellfish",
+              "tree_nuts",
+              "peanuts",
+              "wheat",
+              "soybeans",
+              "sesame",
+              "celery",
+              "mustard",
+              "sulphites",
+              "lupin",
+              "molluscs",
+              "other"
             ]
           },
           "severity": {
@@ -111,7 +130,10 @@
           "date": { "type": "string", "format": "date-time" },
           "items": { "type": "array", "items": { "type": "string" } },
           "total": { "type": "number" },
-          "fulfillment_type": { "type": "string", "enum": ["pickup", "delivery"] }
+          "fulfillment_type": {
+            "type": "string",
+            "enum": ["pickup", "delivery"]
+          }
         }
       },
       "description": "Order history (limited to last 12 months by default; full 3-year retention for tax/legal)"
@@ -215,9 +237,18 @@
             "type": "object",
             "properties": {
               "timestamp": { "type": "string", "format": "date-time" },
-              "field": { "type": "string", "description": "Field modified (e.g., 'allergies')" },
-              "action": { "type": "string", "enum": ["created", "updated", "deleted", "accessed"] },
-              "user_type": { "type": "string", "enum": ["customer", "support_agent", "system"] }
+              "field": {
+                "type": "string",
+                "description": "Field modified (e.g., 'allergies')"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["created", "updated", "deleted", "accessed"]
+              },
+              "user_type": {
+                "type": "string",
+                "enum": ["customer", "support_agent", "system"]
+              }
             }
           },
           "description": "Immutable audit trail of all modifications"
@@ -236,7 +267,12 @@
   "encryption_requirements": {
     "at_rest": "CMK (customer-managed keys) in Standard setup; Microsoft-managed in Basic",
     "in_transit": "TLS 1.2+",
-    "fields_encrypted": ["allergies", "default_delivery", "contact_preferences.email", "contact_preferences.phone"],
+    "fields_encrypted": [
+      "allergies",
+      "default_delivery",
+      "contact_preferences.email",
+      "contact_preferences.phone"
+    ],
     "access_control": "Customer self-service (read own profile, request deletion); support agents with RBAC; audit log required"
   },
   "compliance_notes": {

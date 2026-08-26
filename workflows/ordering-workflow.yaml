@@ -11,8 +11,8 @@ metadata:
 spec:
   # Workflow Configuration
   initial_state: greet
-  max_turns: 15  # Auto-escalate if max turns reached
-  
+  max_turns: 15 # Auto-escalate if max turns reached
+
   # State Definitions (Declarative, No Loops)
   states:
     # ===== INITIAL STATE =====
@@ -27,6 +27,8 @@ spec:
       transitions:
         - condition: "intent == order"
           next_state: collect_size
+        - condition: "intent == quantity_estimate"
+          next_state: collect_diner_count
         - condition: "intent == browse"
           next_state: menu_browse
         - condition: "intent == check_status"
@@ -66,6 +68,8 @@ spec:
       transitions:
         - condition: "intent == order"
           next_state: collect_size
+        - condition: "intent == quantity_estimate"
+          next_state: collect_diner_count
         - condition: "intent == check_status"
           next_state: check_order_status
         - condition: "intent == exit"
@@ -74,6 +78,46 @@ spec:
           next_state: end_no_order
 
     # ===== SLOT COLLECTION FLOW =====
+    - name: collect_diner_count
+      type: agent_turn
+      agent: crust
+      prompt_override: |
+        Ask: "How many people are eating?"
+        Explain that you'll use this plus appetite level to estimate pizzas.
+      transitions:
+        - condition: "diner_count_captured == true AND diner_count > 0"
+          next_state: collect_appetite_level
+        - condition: "diner_count_invalid == true"
+          next_state: collect_diner_count
+      slot: "diner_count"
+      required: true
+
+    - name: collect_appetite_level
+      type: agent_turn
+      agent: crust
+      prompt_override: |
+        Ask: "What's the appetite level for the group: light, average, or hungry?"
+      transitions:
+        - condition: "appetite_captured == true"
+          next_state: estimate_pizza_quantity
+      slot: "appetite_level"
+      required: true
+
+    - name: estimate_pizza_quantity
+      type: agent_turn
+      agent: crust
+      prompt_override: |
+        Call pizza_quantity_estimate using diner_count and appetite_level.
+        Return a concise recommendation with total pizzas and a helpful variety suggestion.
+        Ask whether the customer wants to start building that order now.
+      transitions:
+        - condition: "user_wants_to_order == true"
+          next_state: collect_size
+        - condition: "user_done == true"
+          next_state: end_no_order
+      guardrails:
+        - "Do not estimate until diner_count and appetite_level are both captured"
+
     - name: collect_size
       type: agent_turn
       agent: crust
@@ -145,7 +189,7 @@ spec:
         Persona at level 2; be efficient.
       transitions:
         - condition: "topping_added == true"
-          next_state: collect_toppings  # Loop back for another topping
+          next_state: collect_toppings # Loop back for another topping
         - condition: "toppings_done == true"
           next_state: collect_quantity
       slot: "toppings"
@@ -180,7 +224,7 @@ spec:
         Persona at level 2.
       transitions:
         - condition: "upsell_accepted == true"
-          next_state: collect_quantity  # Add item and quantity
+          next_state: collect_quantity # Add item and quantity
         - condition: "upsell_rejected == true OR no_upsell_needed == true"
           next_state: read_back
       guardrails:
@@ -201,7 +245,7 @@ spec:
           Subtotal: $29.38
           Tax: $2.35
           **Total: $31.73**
-        
+
         Call price_calc BEFORE responding with prices.
         Persona OFF; plain, crisp, capitalized.
       transitions:
@@ -347,7 +391,7 @@ spec:
           fulfillment_address: (reference ID for delivery)
           fulfillment_time: (ISO 8601 datetime)
           allergen_flags: (customer-stated allergies, for kitchen only)
-        
+
         On SUCCESS: Respond with order number, pickup/delivery time, and confirmation.
         On FAILURE (retryable): Retry once with same order_id (idempotent).
         On FAILURE (terminal): Call human_handoff.
@@ -355,7 +399,7 @@ spec:
         - condition: "order_status == submitted"
           next_state: end_success
         - condition: "tool_error == retryable"
-          next_state: submit  # Retry once (implicit idempotent retry via order_id)
+          next_state: submit # Retry once (implicit idempotent retry via order_id)
         - condition: "tool_error == terminal"
           next_state: end_escalation
           escalation_reason: "order_submit_failure"
@@ -416,7 +460,7 @@ spec:
       description: "Escalated to human staff"
       output: |
         A staff member will help you shortly.
-        [If distress]: If you're going through something serious, please reach out to a trained person — 
+        [If distress]: If you're going through something serious, please reach out to a trained person —
                        in the US you can call or text 988 (Suicide & Crisis Lifeline) anytime.
       escalation_captured: "reason, context, priority"
 

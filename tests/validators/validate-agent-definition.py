@@ -13,6 +13,7 @@ REQUIRED_TOOLS = {
     "menu_lookup",
     "allergen_lookup",
     "price_calc",
+    "pizza_quantity_estimate",
     "order_submit",
     "order_status",
     "human_handoff",

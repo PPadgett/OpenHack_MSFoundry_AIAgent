@@ -23,14 +23,20 @@
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "Order ID to check" }
+                "description": {
+                  "type": "string",
+                  "const": "Order ID to check"
+                }
               }
             },
             "customer_id": {
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "string" },
-                "description": { "type": "string", "const": "Customer ID (optional; may be required for privacy)" }
+                "description": {
+                  "type": "string",
+                  "const": "Customer ID (optional; may be required for privacy)"
+                }
               }
             }
           }
@@ -47,7 +53,15 @@
     "idempotence": "GET operation; safe to call multiple times; same order_id → same status",
     "usage_rule": "Call when customer asks 'where's my order?' or wants to check status",
     "response_includes": "{order_id, status, pickup_time, delivery_eta, order_items, tracking_url}",
-    "statuses": ["pending_confirmation", "confirmed", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"],
+    "statuses": [
+      "pending_confirmation",
+      "confirmed",
+      "preparing",
+      "ready",
+      "out_for_delivery",
+      "delivered",
+      "cancelled"
+    ],
     "error_handling": "If order not found, offer human_handoff to look up by phone/email"
   }
 }

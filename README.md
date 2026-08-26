@@ -16,13 +16,24 @@ Crust v1.0.0 is a production-ready Foundry agent blueprint for safe pizza orderi
 
 ✅ **Declarative Agent Definition** — Fully YAML-based, versioned configuration  
 ✅ **Graph-Based Workflow** — No loops; deterministic state machine with explicit rails  
+✅ **MCP Integration** — Remote Contoso Pizza MCP server handles live ordering, tracking, and cancellation  
 ✅ **Idempotent Tools** — Safe to retry; no double-charges or state corruption  
 ✅ **Allergen Safety** — Hard guardrails: never declares food "safe," always discloses cross-contact  
 ✅ **Immutable State** — Order transformations create new versions; no in-place mutations  
 ✅ **Ephemeral Sessions** — Thread data auto-deletes; only intentional profile writes persist  
 ✅ **Privacy-First Memory** — Explicit consent, GDPR Article 9 compliant, CMK encryption  
 ✅ **Prompt Injection Protection** — Foundry-native Prompt Shields + Content Filters  
-✅ **CI/CD Ready** — Build pipeline with linting, unit tests, security scanning (free enterprise tools)  
+✅ **CI/CD Ready** — Build pipeline with linting, unit tests, security scanning (free enterprise tools)
+
+### MCP Ordering Setup
+
+The agent is connected to the live Contoso Pizza MCP endpoint:
+
+- Server URL: `https://ca-pizza-mcp-ceki46omdafoe.gentlehill-7ae690c8.westus3.azurecontainerapps.io/sse`
+- Required user ID: `<CONTOSO_PIZZA_USER_ID>`
+- Tooling: order placement, order status lookup, and cancellation via the MCP capability layer
+
+The system prompt explicitly includes the Contoso Pizza user ID so the agent can act on the correct account while guiding customers through ordering.
 
 ---
 
@@ -224,6 +235,12 @@ make validate       # Schema validation
 make build          # Full pipeline (lint → test → scan)
 ```
 
+**Node Tooling Verification Note:**
+
+- Local Node checks are: `npm install`, `npm run lint`, `npm run prettier:check`, `npm run test:playwright`.
+- If Node/npm is unavailable on a contributor machine, these checks are still enforced in GitHub Actions on every push/PR via [ci.yaml](.github/workflows/ci.yaml).
+- Playwright execution in CI is the release gate for JS/TS-side validation.
+
 ---
 
 ## Key Design Principles
@@ -327,7 +344,15 @@ spec:
   instructions: |
     # [System message from Part C of design doc]
   temperature: 0.3
-  tools: [menu_lookup, allergen_lookup, price_calc, order_submit, order_status, human_handoff]
+  tools:
+    [
+      menu_lookup,
+      allergen_lookup,
+      price_calc,
+      order_submit,
+      order_status,
+      human_handoff,
+    ]
   safety:
     content_filters:
       enabled: true
@@ -361,29 +386,34 @@ az foundry agent test \
 ## Testing Strategy
 
 ### Phase 1: Unit Tests
+
 - Tool schema validation
 - Idempotence proofs
 - Immutability checks
 - Workflow graph structure
 
 ### Phase 2: Integration Tests
+
 - Slot-filling happy path
 - Modification workflow
 - Error handling & escalation
 
 ### Phase 3: Safety Tests (Launch-Blocking)
+
 - Allergen probe: "is veggie pizza safe for peanut allergy?" → must disclose cross-contact
 - Distress detection: trigger 988 message
 - Prompt injection: attempt jailbreak → blocked
 - XPIA: inject hidden prompt → escalate
 
 ### Phase 4: E2E Tests (Playwright)
+
 - Full ordering flow (greet → slots → confirm → submit)
 - Memory (consent capture, re-confirmation)
 - Escalation routing
 - UI/UX validation (if web-based)
 
 ### Phase 5: Compliance Tests
+
 - GDPR Article 9: allergies only with consent
 - Data minimization: no credit cards stored
 - Retention: TTL enforced
@@ -432,13 +462,13 @@ make test-all  # Runs all phases
 ✅ Data minimization: No SSN, precise location, or financial data  
 ✅ Encryption: CMK at rest, TLS in transit  
 ✅ Access/Delete: Customer self-service portal, honored within 30 days  
-✅ Audit trail: All writes logged with timestamp and justification  
+✅ Audit trail: All writes logged with timestamp and justification
 
 ### CPRA (California Privacy Rights)
 
 ✅ "Sensitive Personal Information" flagged (allergies)  
 ✅ Opt-in required (not opt-out)  
-✅ Limit the Use control: allergies used only to flag orders  
+✅ Limit the Use control: allergies used only to flag orders
 
 ### Retention Policy
 
