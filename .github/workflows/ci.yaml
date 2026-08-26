@@ -305,7 +305,10 @@ jobs:
 
       - name: Skip staging deploy (missing credentials)
         if: env.AZURE_CREDENTIALS_JSON == ''
-        run: echo "AZURE_CREDENTIALS is not set; skipping staging deployment."
+        run: |
+          echo "ERROR: secrets.AZURE_CREDENTIALS is not set in GitHub Actions."
+          echo "Configure it at Settings -> Secrets and variables -> Actions."
+          exit 1
 
       - name: Set up Azure CLI
         if: env.AZURE_CREDENTIALS_JSON != ''
@@ -334,7 +337,10 @@ jobs:
 
       - name: Skip production deploy (missing credentials)
         if: env.AZURE_CREDENTIALS_JSON == ''
-        run: echo "AZURE_CREDENTIALS is not set; skipping production deployment."
+        run: |
+          echo "ERROR: secrets.AZURE_CREDENTIALS is not set in GitHub Actions."
+          echo "Configure it at Settings -> Secrets and variables -> Actions."
+          exit 1
 
       - name: Set up Azure CLI
         if: env.AZURE_CREDENTIALS_JSON != ''
