@@ -5,9 +5,14 @@ Tests idempotence, immutability, and error handling.
 
 import pytest
 import json
+import sys
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 import uuid
+
+# Ensure local imports work consistently in CI runners.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # Import tool implementations
 from tools.tool_implementations import (

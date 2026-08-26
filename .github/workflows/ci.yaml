@@ -282,7 +282,7 @@ jobs:
           echo "  - Unit tests: ✓"
           echo "  - Security scan: ✓"
           echo "  - Allergen safety: ✓"
-            echo "  - E2E tests: skipped temporarily"
+          echo "  - E2E tests: skipped temporarily"
 
   deploy-staging:
     name: Deploy to Staging
@@ -342,6 +342,7 @@ jobs:
             })
 
       - name: Notify deployment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -360,6 +361,7 @@ jobs:
     if: failure()
     steps:
       - name: Post failure notification
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
