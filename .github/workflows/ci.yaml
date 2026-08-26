@@ -5,10 +5,14 @@ on:
     branches: [main, develop]
     paths:
       - "README.md"
+      - "requirements.txt"
+      - ".env"
+      - ".env.mock"
       - "docs/**"
       - "agent-definition.yaml"
       - "package.json"
       - "package-lock.json"
+      - "scripts/**"
       - "tools/**"
       - "workflows/**"
       - "safety/**"
@@ -17,6 +21,7 @@ on:
       - ".github/workflows/**"
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
   schedule:
     - cron: "0 2 * * *" # Daily at 2 AM UTC
 
