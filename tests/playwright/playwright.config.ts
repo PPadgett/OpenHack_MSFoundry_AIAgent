@@ -67,13 +67,6 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run start',
-    url: process.env.PIZZA_WEBAPP_URL || 'https://green-bush-0d277aa0f.7.azurestaticapps.net/',
-    reuseExistingServer: !process.env.CI,
-  },
-
   /* Global timeout */
   timeout: 30000,
 

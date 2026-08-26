@@ -117,7 +117,14 @@ def idempotent_get(max_retries=API_MAX_RETRIES):
 def idempotent_post(func):
     """Decorator for idempotent POST operations (with idempotency key)."""
     @wraps(func)
-    def wrapper(idempotency_key, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        idempotency_key = kwargs.get("order_id")
+        if idempotency_key is None and args:
+            idempotency_key = args[0]
+
+        if not idempotency_key:
+            raise ValueError("Missing idempotency key: order_id")
+
         # Validate idempotency key format (UUID)
         try:
             uuid.UUID(idempotency_key)
@@ -130,7 +137,7 @@ def idempotent_post(func):
         
         # Perform operation
         try:
-            result = func(idempotency_key, *args, **kwargs)
+            result = func(*args, **kwargs)
             # TODO: Store result in idempotency cache with TTL
             logger.info(f"{func.__name__} succeeded with key {idempotency_key}")
             return result

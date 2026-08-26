@@ -96,13 +96,13 @@ spec:
   # Deployment targets
   deployment_targets:
     - type: "azure_foundry"
-      region: "us-east-1"
+      region: "eastus2"
       auto_scale_enabled: true
       min_instances: 2
       max_instances: 10
     
     - type: "azure_foundry"
-      region: "us-west-2"
+      region: "westus3"
       auto_scale_enabled: true
       min_instances: 1
       max_instances: 5

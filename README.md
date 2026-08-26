@@ -8,6 +8,10 @@
 
 **Crust** is a pizza-ordering assistant for restaurants built on Microsoft Foundry Agent Service. It combines a warm, emo/alt-indie persona with strict safety guardrails around food allergies, prices, and customer distress.
 
+## Release Summary
+
+Crust v1.0.0 is a production-ready Foundry agent blueprint for safe pizza ordering. The release includes a declarative agent contract, deterministic workflow, idempotent tool implementations, and launch-blocking allergen guardrails. It is pre-wired for Azure deployment targets, CI quality gates (lint, test, security scan), and enterprise privacy controls for profile data handling.
+
 ### Key Features
 
 ✅ **Declarative Agent Definition** — Fully YAML-based, versioned configuration  

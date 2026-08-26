@@ -80,7 +80,12 @@
               "type": "object",
               "properties": {
                 "type": { "type": "string", "const": "array" },
-                "items": { "type": { "type": "string", "const": "string" } },
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "const": "string" }
+                  }
+                },
                 "description": { "type": "string", "const": "Customer-stated allergies (for kitchen flagging, NOT for safety declaration)" }
               }
             },

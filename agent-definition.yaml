@@ -358,8 +358,8 @@ spec:
   deployment:
     compute: "standard"  # Foundry-managed
     regions:
-      - "us-east-1"
-      - "us-west-2"
+      - "eastus2"
+      - "westus3"
     auto_scale: true
     min_instances: 2
     max_instances: 10
