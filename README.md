@@ -457,6 +457,33 @@ az foundry agent test \
   --message "i'd like to order a pizza"
 ```
 
+### Chat With Production Agent
+
+Use the script below to send messages directly to the deployed production Foundry agent:
+
+```powershell
+# Single message
+./scripts/chat-production-agent.ps1 \
+  -AgentName crust \
+  -ResourceGroup <your-rg> \
+  -Location us-east-1 \
+  -Message "I want a pepperoni pizza"
+
+# Interactive chat loop
+./scripts/chat-production-agent.ps1 \
+  -AgentName crust \
+  -ResourceGroup <your-rg> \
+  -Location us-east-1 \
+  -Interactive
+```
+
+Prerequisites:
+
+- Azure CLI logged in (`az login`)
+- Foundry command group available (`az foundry -h`)
+- Agent is already deployed and reachable
+- Optional env defaults: `FOUNDRY_AGENT_NAME`, `AZURE_RESOURCE_GROUP`, `FOUNDRY_LOCATION` (or `AZURE_REGION`)
+
 ---
 
 ## Testing Strategy
