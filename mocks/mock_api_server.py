@@ -101,6 +101,23 @@ def _find_item_price(item_id: str) -> float:
     return 12.99
 
 
+def _build_order_status(order: dict) -> str:
+    """Derive a deterministic status based on order age in minutes."""
+    try:
+        created_at = datetime.fromisoformat(order["created_at"].replace("Z", "+00:00"))
+        age_minutes = (datetime.now(UTC) - created_at).total_seconds() / 60
+    except (KeyError, ValueError):
+        return "submitted"
+
+    if age_minutes < 2:
+        return "submitted"
+    if age_minutes < 6:
+        return "preparing"
+    if age_minutes < 10:
+        return "ready"
+    return "delivered"
+
+
 class MockApiHandler(BaseHTTPRequestHandler):
     server_version = "MockApi/1.0"
 
@@ -154,10 +171,12 @@ class MockApiHandler(BaseHTTPRequestHandler):
 
         if path == "/api/allergens":
             item_id = (query.get("item_id") or [""])[0]
+            allergen_filter = (query.get("allergen") or [None])[0]
             if not item_id:
                 _json_response(self, 400, {"error": "item_id is required"})
                 return
-            payload = ALLERGENS.get(
+            payload = dict(
+                ALLERGENS.get(
                 item_id,
                 {
                     "allergens": [],
@@ -167,6 +186,23 @@ class MockApiHandler(BaseHTTPRequestHandler):
                     "preparation_notes": "Prepared in a shared kitchen.",
                 },
             )
+            )
+
+            if allergen_filter and allergen_filter != "all":
+                payload["allergens"] = [
+                    a for a in payload.get("allergens", []) if a == allergen_filter
+                ]
+                payload["contains_fda_big_nine"] = [
+                    a
+                    for a in payload.get("contains_fda_big_nine", [])
+                    if a == allergen_filter
+                ]
+                payload["contains_eu_fourteen"] = [
+                    a
+                    for a in payload.get("contains_eu_fourteen", [])
+                    if a == allergen_filter
+                ]
+
             _json_response(self, 200, payload)
             return
 
@@ -178,13 +214,17 @@ class MockApiHandler(BaseHTTPRequestHandler):
                 return
 
             eta = datetime.now(UTC) + timedelta(minutes=20)
+            status = _build_order_status(order)
             payload = {
                 "order_id": order_id,
-                "status": order.get("status", "submitted"),
+                "status": status,
                 "pickup_time": eta.isoformat().replace("+00:00", "Z"),
                 "delivery_eta": eta.isoformat().replace("+00:00", "Z"),
                 "items": order.get("items", []),
+                "order_items": order.get("items", []),
                 "total": order.get("total", 0.0),
+                "tracking_url": f"https://mock.local/track/{order_id}",
+                "order_number": order.get("order_number", order_id[:8].upper()),
             }
             _json_response(self, 200, payload)
             return
@@ -238,6 +278,12 @@ class MockApiHandler(BaseHTTPRequestHandler):
         if path == "/api/orders":
             payload = _read_json(self)
             order_id = payload.get("order_id") or str(uuid.uuid4())
+
+            # Idempotency: same order_id should return same persisted result.
+            if order_id in ORDERS:
+                _json_response(self, 200, ORDERS[order_id])
+                return
+
             now = _now_iso()
 
             order_items = payload.get("items", [])
@@ -255,6 +301,8 @@ class MockApiHandler(BaseHTTPRequestHandler):
                 "order_id": order_id,
                 "version": 1,
                 "status": "submitted",
+                "order_number": order_id[:8].upper(),
+                "confirmation_token": str(uuid.uuid5(uuid.NAMESPACE_URL, order_id)),
                 "items": order_items,
                 "subtotal": round(subtotal, 2),
                 "tax": tax,

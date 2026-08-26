@@ -58,6 +58,14 @@ curl http://localhost:8081/health
 curl http://localhost:7071/api/menu
 ```
 
+## Fidelity Verification
+
+Run contract-shape and idempotence checks against the running mocks:
+
+```powershell
+c:/Users/demouser/OpenHack_MSFoundry_AIAgent/.venv/Scripts/python.exe mocks/verify_mock_fidelity.py
+```
+
 ## Implemented Mock Routes
 
 ### Pizza API

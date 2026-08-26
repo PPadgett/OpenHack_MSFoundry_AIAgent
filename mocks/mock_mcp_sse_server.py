@@ -35,6 +35,15 @@ class MockMcpHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _read_json(self) -> dict:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0:
+            return {}
+        raw = self.rfile.read(length).decode("utf-8")
+        if not raw:
+            return {}
+        return json.loads(raw)
+
     def do_GET(self) -> None:
         if self.path in ("/", ""):
             self._send_json(
@@ -84,6 +93,31 @@ class MockMcpHandler(BaseHTTPRequestHandler):
             return
 
         self._send_json(404, {"error": "not found", "path": self.path})
+
+    def do_POST(self) -> None:
+        if self.path != "/invoke":
+            self._send_json(404, {"error": "not found", "path": self.path})
+            return
+
+        payload = self._read_json()
+        tool_name = payload.get("tool")
+        if tool_name not in TOOLS:
+            self._send_json(400, {"error": "unknown_tool", "tool": tool_name})
+            return
+
+        self._send_json(
+            200,
+            {
+                "ok": True,
+                "tool": tool_name,
+                "arguments": payload.get("arguments", {}),
+                "result": {
+                    "mock": True,
+                    "tool": tool_name,
+                    "timestamp": _iso_now(),
+                },
+            },
+        )
 
 
 def main() -> None:
