@@ -41,7 +41,8 @@ def build_mcp_tool() -> McpTool:
             "delete_order_by_id",
         ],
     )
-    mcp_tool.set_approval_mode("never")
+    # Keep explicit run_handler approvals enabled; forcing "never" can create
+    # inconsistent behavior across SDK/runtime combinations.
     return mcp_tool
 
 
@@ -63,21 +64,28 @@ class AutoApproveMcpRunHandler(RunHandler):
         return ToolApproval(tool_call_id=tool_call.id, approve=True)
 
 
-def extract_first_text(messages) -> str:
-    first_message = next(iter(messages), None)
-    if not first_message:
-        return ""
-    for item in first_message.content:
-        if getattr(item, "type", None) == "text":
-            text_obj = getattr(item, "text", None)
-            value = getattr(text_obj, "value", None)
-            if value:
-                return value
+def extract_latest_text(messages) -> str:
+    message_list = list(messages)
+    for message in reversed(message_list):
+        role = str(getattr(message, "role", "")).lower()
+        if "assistant" not in role and "agent" not in role:
+            continue
+        for item in message.content:
+            item_type = getattr(item, "type", None)
+            if item_type in {"text", "output_text"}:
+                text_obj = getattr(item, "text", None)
+                value = getattr(text_obj, "value", None)
+                if value:
+                    return value
+                value = getattr(item, "value", None)
+                if value:
+                    return value
     return ""
 
 
 def main() -> int:
     model_name = os.getenv("FOUNDRY_MODEL_DEPLOYMENT", "gpt-5.4")
+    default_user_id = os.getenv("CONTOSO_PIZZA_USER_ID", "").strip()
 
     with build_project_client() as project_client:
         mcp_tool = build_mcp_tool()
@@ -88,9 +96,11 @@ def main() -> int:
             model=model_name,
             name="crust-live-chat",
             instructions=(
-                "You are Crust, a pizza ordering assistant. "
-                "Use MCP tools for menu, toppings, and orders. "
-                "Always confirm order details before placing an order."
+                "You are Crust, a pizza ordering assistant with a friendly persona. "
+                "Use MCP tools for menu, toppings, pricing, and orders on every relevant turn. "
+                "Do not repeat stale menu text; answer the current user question directly. "
+                "Always confirm order details before placing an order. "
+                f"For place_order calls, use lab userId '{default_user_id}' unless the user provides another valid userId."
             ),
             toolset=toolset,
             top_p=0.7,
@@ -117,15 +127,20 @@ def main() -> int:
                     content=user_input,
                 )
 
-                project_client.runs.create_and_process(
+                run = project_client.runs.create_and_process(
                     thread_id=thread.id,
                     agent_id=agent.id,
                     run_handler=run_handler,
                 )
 
+                run_status = str(getattr(run, "status", ""))
+                if "failed" in run_status.lower() or "cancelled" in run_status.lower():
+                    print(f"Crust: [Run status: {run_status}]")
+                    print(f"Crust: [Run error: {getattr(run, 'last_error', None)}]")
+
                 messages = project_client.messages.list(thread_id=thread.id)
-                answer = extract_first_text(messages)
-                print(f"Crust: {answer}")
+                answer = extract_latest_text(messages)
+                print(f"Crust: {answer or '[No text response returned by agent]'}")
         finally:
             project_client.delete_agent(agent.id)
             print("Deleted agent")
