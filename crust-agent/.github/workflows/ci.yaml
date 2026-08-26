@@ -1,0 +1,366 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'agent-definition.yaml'
+      - 'tools/**'
+      - 'workflows/**'
+      - 'safety/**'
+      - 'schemas/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+
+env:
+  PIZZA_API_URL: ${{ secrets.PIZZA_API_URL }}
+  PIZZA_WEBAPP_URL: ${{ secrets.PIZZA_WEBAPP_URL }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+
+jobs:
+  lint-and-validate:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          npm install
+
+      - name: Run linting (YAML, JSON, Python)
+        run: make lint
+
+      - name: Validate agent definition & schemas
+        run: make validate
+
+      - name: Check code formatting
+        run: |
+          npm run prettier:check
+          python -m black --check tools/ tests/unit/
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-reports
+          path: |
+            linting-report.json
+            formatting-issues.txt
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-mock
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ -v --cov=tools --cov-report=xml --cov-report=html --junitxml=junit.xml
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-results
+          path: |
+            junit.xml
+            htmlcov/
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Semgrep static analysis
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/python
+            p/security-audit
+            p/owasp-top-ten
+          generateSarif: true
+
+      - name: Set up Python for Bandit
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Run Bandit (Python security)
+        run: |
+          pip install bandit
+          bandit -r tools/ -f json -o bandit-report.json || true
+          bandit -r tools/ -f txt
+
+      - name: Check for dependency vulnerabilities
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'crust-agent'
+          path: '.'
+          format: 'JSON'
+          args: >
+            --enableExperimental
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            trivy-results.sarif
+            bandit-report.json
+            dependency-check-report.json
+
+  allergen-safety-tests:
+    name: Allergen Safety Tests (Launch-Blocking)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run allergen safety probes
+        run: |
+          pytest tests/validators/test-allergen-guardrail.py -v --tb=short
+
+      - name: Verify allergen guardrails
+        run: |
+          python tests/validators/verify-allergen-safety.py
+
+      - name: Report results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allergen-safety-results
+          path: allergen-safety-report.txt
+
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install
+
+      - name: Run Playwright tests
+        env:
+          PIZZA_WEBAPP_URL: ${{ secrets.PIZZA_WEBAPP_URL }}
+        run: |
+          npm run test:playwright
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  integration-tests:
+    name: Integration Tests (Against Live APIs)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    needs: [unit-tests, e2e-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-timeout
+
+      - name: Run integration tests
+        env:
+          PIZZA_API_URL: ${{ secrets.PIZZA_API_URL }}
+          REGISTRATION_API_URL: ${{ secrets.REGISTRATION_API_URL }}
+        run: |
+          pytest tests/integration/ -v --timeout=30
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-results
+          path: integration-test-report.xml
+
+  build-approval:
+    name: Build Approval Gate
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate, unit-tests, security-scan, allergen-safety-tests, e2e-tests]
+    steps:
+      - name: Check all tests passed
+        run: |
+          echo "✓ All CI checks passed"
+          echo "  - Linting: ✓"
+          echo "  - Unit tests: ✓"
+          echo "  - Security scan: ✓"
+          echo "  - Allergen safety: ✓"
+          echo "  - E2E tests: ✓"
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-approval
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Staging
+        run: |
+          make deploy-staging
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-approval
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: ${{ secrets.FOUNDRY_AGENT_URL }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Production
+        run: |
+          make deploy
+
+      - name: Run smoke tests
+        run: |
+          python tests/validators/test-deployment-health.py
+
+      - name: Create deployment record
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.ref,
+              environment: 'production',
+              description: 'Crust agent deployment',
+              auto_merge: false,
+              required_contexts: []
+            })
+
+      - name: Notify deployment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✓ Deployment to production successful!'
+            })
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate, unit-tests, security-scan, allergen-safety-tests, e2e-tests]
+    if: failure()
+    steps:
+      - name: Post failure notification
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ CI/CD pipeline failed. Review logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })

@@ -1,0 +1,49 @@
+{
+  "name": "crust-agent",
+  "version": "1.0.0",
+  "description": "Crust - Emo Pizza Ordering Agent for Microsoft Foundry",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui",
+    "test:playwright:debug": "playwright test --debug",
+    "lint": "npm run lint:yaml && npm run lint:json && npm run lint:ts",
+    "lint:yaml": "yamllint -c config/yamllint.yaml . --strict",
+    "lint:json": "find . -name '*.json' -not -path './node_modules/*' | xargs -I {} jsonlint {}",
+    "lint:ts": "eslint tests/playwright --ext .ts",
+    "prettier:check": "prettier --check '**/*.{yaml,json,ts,js,md}'",
+    "prettier:write": "prettier --write '**/*.{yaml,json,ts,js,md}'",
+    "format": "npm run prettier:write",
+    "security:audit": "npm audit --audit-level=high",
+    "build": "tsc --noEmit"
+  },
+  "keywords": [
+    "pizza",
+    "ordering",
+    "agent",
+    "foundry",
+    "ai"
+  ],
+  "author": "OpenHack MSFoundry Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "jsonlint": "^1.6.3",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3",
+    "yamllint": "^2.0.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Allergen Lookup Tool",
+  "description": "Get allergen and ingredient data for a specific menu item. CRITICAL: Use before any allergy discussion. Never guess allergen status.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "allergen_lookup"
+    },
+    "description": {
+      "type": "string",
+      "const": "Get allergen and ingredient info for a menu item"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "item_id": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "Menu item ID (from menu_lookup response)" }
+              }
+            },
+            "allergen_filter": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "enum": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "const": ["peanuts", "tree_nuts", "milk", "eggs", "fish", "shellfish", "wheat", "soy", "sesame", "all"]
+                },
+                "description": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": {
+          "type": "array",
+          "const": ["item_id"]
+        }
+      }
+    }
+  },
+  "required": ["name", "description", "parameters"],
+  "properties_comment": {
+    "idempotence": "GET operation; idempotent; same input → same allergen data",
+    "usage_rule": "ALWAYS call this tool before discussing allergies. Never guess allergen status from memory.",
+    "response_handling": "Disclose ingredient data, state 'I can't guarantee cross-contact', offer human_handoff",
+    "safety_critical": "If allergy mentioned, this tool is NON-NEGOTIABLE. Failure to call = safety violation.",
+    "fda_allergens": "Big 9: milk, eggs, fish, shellfish, tree nuts, peanuts, wheat, soybeans, sesame",
+    "eu_allergens": "14 allergens required in EU: add celery, mustard, sulphites, lupin, molluscs"
+  }
+}

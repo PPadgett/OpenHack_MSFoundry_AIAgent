@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Human Handoff Tool",
+  "description": "Escalate to human staff. Use for allergen uncertainty, distress, tool failures, complaints, refunds, or out-of-scope questions.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "human_handoff"
+    },
+    "description": {
+      "type": "string",
+      "const": "Escalate to human staff"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "enum": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "const": ["allergen_uncertainty", "customer_distress", "tool_failure", "complaint", "refund", "out_of_scope", "other"]
+                },
+                "description": { "type": "string", "const": "Reason for escalation" }
+              }
+            },
+            "context": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "object" },
+                "description": { "type": "string", "const": "Conversation context (last few messages, customer intent, any relevant data)" }
+              }
+            },
+            "priority": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "enum": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "const": ["normal", "high", "urgent"]
+                },
+                "description": { "type": "string", "const": "Escalation priority (default: normal)" }
+              }
+            }
+          }
+        },
+        "required": {
+          "type": "array",
+          "const": ["reason"]
+        }
+      }
+    }
+  },
+  "required": ["name", "description", "parameters"],
+  "properties_comment": {
+    "usage_cases": {
+      "allergen_uncertainty": "Customer allergy + missing/unclear allergen data for item",
+      "customer_distress": "Real emotional distress, self-harm intent, suicidal ideation",
+      "tool_failure": "Tool returns error after 1 retry; agent cannot proceed",
+      "complaint": "Customer complains about order, service, quality",
+      "refund": "Customer requests refund or cancellation",
+      "out_of_scope": "Question unrelated to food/ordering (news, coding, medical, legal, etc.)",
+      "other": "Catchall for edge cases"
+    },
+    "fire_and_forget": "Creates ticket in support queue and routes to next available agent",
+    "response_to_customer": "On distress: drop persona, share 988 number, brief warmth. On others: 'A staff member will help you shortly.'",
+    "sla": "Normal: 5-10 min response; High: 2-5 min; Urgent: immediate"
+  }
+}

@@ -1,0 +1,249 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Customer Profile (Long-Term Memory)",
+  "description": "Persistent customer profile stored in external database with consent, GDPR Article 9 compliance, and encryption.",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique customer identifier (immutable)"
+    },
+    "preferred_name": {
+      "type": "string",
+      "description": "First name or nickname (mutable; updatable by customer)"
+    },
+    "legal_name": {
+      "type": ["string", "null"],
+      "description": "Full legal name (optional; for order receipts/refunds)"
+    },
+    "contact_preferences": {
+      "type": "object",
+      "properties": {
+        "email": { "type": ["string", "null"], "format": "email" },
+        "phone": { "type": ["string", "null"], "format": "phone" },
+        "sms_opted_in": { "type": "boolean", "default": false },
+        "marketing_opted_in": { "type": "boolean", "default": false }
+      },
+      "description": "Contact info and opt-in preferences"
+    },
+    "dietary_restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["vegetarian", "vegan", "gluten-free", "halal", "kosher", "other"]
+      },
+      "description": "Dietary restrictions (non-medical)"
+    },
+    "allergies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "allergen": {
+            "type": "string",
+            "enum": [
+              "milk", "eggs", "fish", "shellfish", "tree_nuts", "peanuts",
+              "wheat", "soybeans", "sesame", "celery", "mustard", "sulphites",
+              "lupin", "molluscs", "other"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["mild", "moderate", "severe", "anaphylaxis"],
+            "description": "Customer-reported severity (informational only; never used to declare safe)"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["customer_stated", "medical_documentation", "other"],
+            "description": "How this allergy was documented"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number (immutable history; version 1 at creation, version++ on updates)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this allergen record was created (immutable)"
+          },
+          "updated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When this allergen record was last updated (null if never updated)"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "description": "Optional notes (e.g., 'confirmed with doctor', 'onset in 2020')"
+          }
+        },
+        "required": ["allergen", "severity", "created_at", "version"]
+      },
+      "description": "GDPR Article 9 health data; requires explicit consent + encryption"
+    },
+    "favorites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_name": { "type": "string" },
+          "item_id": { "type": "string" },
+          "special_instructions": { "type": ["string", "null"] },
+          "size": { "type": "string" },
+          "crust": { "type": "string" },
+          "last_ordered": { "type": "string", "format": "date-time" },
+          "order_count": { "type": "integer" }
+        }
+      },
+      "description": "Favorite orders for quick reordering"
+    },
+    "never_again": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Items customer has explicitly rejected (e.g., 'anchovies')"
+    },
+    "past_orders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order_id": { "type": "string", "format": "uuid" },
+          "date": { "type": "string", "format": "date-time" },
+          "items": { "type": "array", "items": { "type": "string" } },
+          "total": { "type": "number" },
+          "fulfillment_type": { "type": "string", "enum": ["pickup", "delivery"] }
+        }
+      },
+      "description": "Order history (limited to last 12 months by default; full 3-year retention for tax/legal)"
+    },
+    "default_delivery": {
+      "type": "object",
+      "properties": {
+        "address_id": {
+          "type": "string",
+          "description": "Reference ID to secure address store (NEVER inline full address)"
+        },
+        "label": { "type": "string", "enum": ["home", "work", "other"] },
+        "last_used": { "type": "string", "format": "date-time" }
+      },
+      "description": "Default delivery address (reference ID only; full address in secure store)"
+    },
+    "consent": {
+      "type": "object",
+      "properties": {
+        "store_profile": {
+          "type": "boolean",
+          "description": "Consent to store name, contact info, favorites"
+        },
+        "store_allergies": {
+          "type": "boolean",
+          "description": "GDPR Article 9 explicit consent for health data storage"
+        },
+        "marketing_communications": {
+          "type": "boolean",
+          "description": "Consent for promotional emails/SMS"
+        },
+        "captured_on": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When consent was captured (immutable)"
+        },
+        "policy_version": {
+          "type": "string",
+          "description": "Privacy policy version at time of consent (e.g., '1.2')"
+        },
+        "ip_address": {
+          "type": ["string", "null"],
+          "description": "IP address at consent capture (for audit trail; may be redacted)"
+        }
+      },
+      "required": ["captured_on", "policy_version"],
+      "description": "Consent record (versioned; new record on consent update)"
+    },
+    "retention": {
+      "type": "object",
+      "properties": {
+        "ttl_days": {
+          "type": "integer",
+          "default": 365,
+          "description": "Time-to-live for this profile (12 months default)"
+        },
+        "inactivity_threshold_days": {
+          "type": "integer",
+          "default": 90,
+          "description": "Auto-delete if no activity for 3 months"
+        },
+        "last_activity": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of last order or profile access"
+        },
+        "expires_on": {
+          "type": "string",
+          "format": "date",
+          "description": "Calculated expiry date (last_activity + ttl_days)"
+        },
+        "deletion_requested": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "If customer requested deletion, timestamp of request"
+        }
+      },
+      "description": "Retention and lifecycle management"
+    },
+    "audit": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Profile creation timestamp (immutable)"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp"
+        },
+        "last_access": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last time agent accessed this profile"
+        },
+        "modification_log": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "field": { "type": "string", "description": "Field modified (e.g., 'allergies')" },
+              "action": { "type": "string", "enum": ["created", "updated", "deleted", "accessed"] },
+              "user_type": { "type": "string", "enum": ["customer", "support_agent", "system"] }
+            }
+          },
+          "description": "Immutable audit trail of all modifications"
+        }
+      },
+      "description": "Audit trail for compliance (GDPR, CPRA)"
+    }
+  },
+  "required": ["customer_id", "consent", "retention"],
+  "immutability_rules": {
+    "customer_id": "Immutable; generated at creation, never changes",
+    "allergies": "Immutable history; create new allergen_record on update (version++), never patch old record",
+    "consent": "New consent record created on opt-in/opt-out changes; old consent preserved in audit log",
+    "audit": "Append-only log; never delete or modify audit entries"
+  },
+  "encryption_requirements": {
+    "at_rest": "CMK (customer-managed keys) in Standard setup; Microsoft-managed in Basic",
+    "in_transit": "TLS 1.2+",
+    "fields_encrypted": ["allergies", "default_delivery", "contact_preferences.email", "contact_preferences.phone"],
+    "access_control": "Customer self-service (read own profile, request deletion); support agents with RBAC; audit log required"
+  },
+  "compliance_notes": {
+    "gdpr_article_9": "Health data (allergies) requires explicit consent AND lawful basis (consent captured in 'consent.store_allergies')",
+    "cpra": "Allergies classified as 'sensitive personal information'; opt-in only; limit-use notice required",
+    "access_rights": "Customer can view full profile; delete profile (hard delete within 30 days)",
+    "data_minimization": "Never store credit card numbers, CVV, passwords, or precise location (use address reference ID)",
+    "retention": "TTL 12 months of inactivity; order history retained 3 years for tax/legal; audit logs 90 days"
+  }
+}

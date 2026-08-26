@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Order Submit Tool",
+  "description": "Place a finalized, customer-confirmed order. IDEMPOTENT: same order_id → same result (no double-charge). Call only after explicit confirmation.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "order_submit"
+    },
+    "description": {
+      "type": "string",
+      "const": "Place a confirmed order"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "UUID (idempotency key; generate if new, reuse if retry)" }
+              }
+            },
+            "customer_id": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "UUID of customer (from memory or new)" }
+              }
+            },
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "array" },
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "const": "object" },
+                    "properties": {
+                      "item_id": { "type": { "type": "string", "const": "string" } },
+                      "quantity": { "type": { "type": "string", "const": "integer" } },
+                      "special_instructions": { "type": { "type": "string", "const": "string" } }
+                    }
+                  }
+                }
+              }
+            },
+            "fulfillment_type": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "enum": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "const": ["pickup", "delivery"]
+                }
+              }
+            },
+            "fulfillment_address": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "Delivery address (required for delivery)" }
+              }
+            },
+            "fulfillment_time": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "format": { "type": "string", "const": "date-time" },
+                "description": { "type": "string", "const": "Pickup/delivery time in ISO 8601 format" }
+              }
+            },
+            "allergen_flags": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "array" },
+                "items": { "type": { "type": "string", "const": "string" } },
+                "description": { "type": "string", "const": "Customer-stated allergies (for kitchen flagging, NOT for safety declaration)" }
+              }
+            },
+            "special_requests": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "Any other notes for the kitchen" }
+              }
+            }
+          }
+        },
+        "required": {
+          "type": "array",
+          "const": ["order_id", "customer_id", "items", "fulfillment_type", "fulfillment_time"]
+        }
+      }
+    }
+  },
+  "required": ["name", "description", "parameters"],
+  "properties_comment": {
+    "idempotence": "POST with idempotency key (order_id); calling twice with same order_id returns same result, no double-charge",
+    "pre_condition": "CRITICAL: Call only after explicit customer confirmation ('yes, place it')",
+    "immutability": "Creates new order record with status 'submitted'; never modifies prior orders",
+    "usage_rule": "Read back order, get confirmation, call order_submit, confirm success with order number",
+    "error_handling": "Retryable errors (5xx) → retry with same order_id; terminal errors (4xx) → escalate to human",
+    "allergen_flag_usage": "Flags allergies for kitchen staff; agent never uses allergen_flags to declare food safe",
+    "response_includes": "{order_id, status, pickup_time or delivery_eta, order_number, confirmation_token}"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Order Status Tool",
+  "description": "Check status of an existing order. Idempotent GET; same order_id → same status.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "order_status"
+    },
+    "description": {
+      "type": "string",
+      "const": "Get order status and tracking info"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "Order ID to check" }
+              }
+            },
+            "customer_id": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "Customer ID (optional; may be required for privacy)" }
+              }
+            }
+          }
+        },
+        "required": {
+          "type": "array",
+          "const": ["order_id"]
+        }
+      }
+    }
+  },
+  "required": ["name", "description", "parameters"],
+  "properties_comment": {
+    "idempotence": "GET operation; safe to call multiple times; same order_id → same status",
+    "usage_rule": "Call when customer asks 'where's my order?' or wants to check status",
+    "response_includes": "{order_id, status, pickup_time, delivery_eta, order_items, tracking_url}",
+    "statuses": ["pending_confirmation", "confirmed", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"],
+    "error_handling": "If order not found, offer human_handoff to look up by phone/email"
+  }
+}

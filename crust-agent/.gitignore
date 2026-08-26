@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm
+.eslintcache
+
+# Playwright
+test-results/
+playwright-report/
+.auth/
+.auth.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+.env.*.local
+
+# Build artifacts
+build/
+dist/
+*.zip
+*.tar.gz
+
+# Security & Keys
+.env
+.env.*.local
+secrets/
+*.pem
+*.key
+*.crt
+
+# Logs
+logs/
+*.log
+npm-debug.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Reports
+*-report.json
+*-report.html
+junit.xml
+*-results.sarif
+bandit-report.json
+trivy-results.sarif
+
+# Azure
+local.settings.json
+.funcignore
+
+# Git
+.git/
+
+# Compiled files
+*.pyc
+*.o
+*.out
+
+# Dependencies lock files (optional; commit these or not based on your policy)
+# requirements.txt (DO COMMIT)
+# package.json (DO COMMIT)
+# package-lock.json (OPTIONAL - if committed, helps with reproducibility)

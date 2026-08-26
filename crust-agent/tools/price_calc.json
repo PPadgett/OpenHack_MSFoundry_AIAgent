@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Price Calculator Tool",
+  "description": "Calculate order total with taxes and fees. CRITICAL: Always use for prices. Never guess. Deterministic: same items → same total.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "const": "price_calc"
+    },
+    "description": {
+      "type": "string",
+      "const": "Calculate order total with taxes and fees"
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "order_items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "array" },
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "const": "object" },
+                    "properties": {
+                      "item_id": { "type": { "type": "string", "const": "string" } },
+                      "quantity": { "type": { "type": "string", "const": "integer" } }
+                    }
+                  }
+                },
+                "description": { "type": "string", "const": "Array of {item_id, quantity}" }
+              }
+            },
+            "tax_jurisdiction": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "description": { "type": "string", "const": "State/province for tax calculation (e.g., 'CA', 'NY')" }
+              }
+            },
+            "fulfillment_type": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "string" },
+                "enum": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "const": ["pickup", "delivery"]
+                },
+                "description": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": {
+          "type": "array",
+          "const": ["order_items", "tax_jurisdiction"]
+        }
+      }
+    }
+  },
+  "required": ["name", "description", "parameters"],
+  "properties_comment": {
+    "idempotence": "Deterministic computation; same items + jurisdiction + fulfillment type → same total",
+    "usage_rule": "ALWAYS call before read-back. Never state a price from memory or assumption.",
+    "response_format": "Returns: {subtotal, tax, delivery_fee, total}",
+    "safety_critical": "Prices must be accurate; audit every calculation against response",
+    "immutability": "Each calculation creates new price record; never mutate prior totals"
+  }
+}
