@@ -97,7 +97,13 @@ class TestToolContractTypes:
             (
                 "tools/order_submit.json",
                 "order_submit",
-                ["order_id", "customer_id", "items", "fulfillment_type", "fulfillment_time"],
+                [
+                    "order_id",
+                    "customer_id",
+                    "items",
+                    "fulfillment_type",
+                    "fulfillment_time",
+                ],
             ),
             (
                 "tools/pizza_quantity_estimate.json",
@@ -113,22 +119,33 @@ class TestToolContractTypes:
     ) -> None:
         schema_obj = _load_json(file_path)
         assert schema_obj["properties"]["name"]["const"] == tool_name
-        actual_required = schema_obj["properties"]["parameters"]["properties"]["required"]["const"]
+        actual_required = schema_obj["properties"]["parameters"]["properties"][
+            "required"
+        ]["const"]
         assert actual_required == required_fields
 
     def test_order_submit_contract_has_expected_scalar_types(self) -> None:
         schema_obj = _load_json("tools/order_submit.json")
-        props = schema_obj["properties"]["parameters"]["properties"]["properties"]["properties"]
+        props = schema_obj["properties"]["parameters"]["properties"]["properties"][
+            "properties"
+        ]
 
         assert props["order_id"]["properties"]["type"]["const"] == "string"
         assert props["customer_id"]["properties"]["type"]["const"] == "string"
         assert props["fulfillment_type"]["properties"]["type"]["const"] == "string"
         assert props["items"]["properties"]["type"]["const"] == "array"
-        assert props["allergen_flags"]["properties"]["items"]["properties"]["type"]["const"] == "string"
+        assert (
+            props["allergen_flags"]["properties"]["items"]["properties"]["type"][
+                "const"
+            ]
+            == "string"
+        )
 
     def test_pizza_quantity_contract_has_expected_scalar_types(self) -> None:
         schema_obj = _load_json("tools/pizza_quantity_estimate.json")
-        props = schema_obj["properties"]["parameters"]["properties"]["properties"]["properties"]
+        props = schema_obj["properties"]["parameters"]["properties"]["properties"][
+            "properties"
+        ]
 
         assert props["number_of_people"]["properties"]["type"]["const"] == "integer"
         assert props["appetite_level"]["properties"]["type"]["const"] == "string"
