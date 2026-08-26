@@ -5,6 +5,8 @@ on:
     branches: [main, develop]
     paths:
       - "agent-definition.yaml"
+      - "package.json"
+      - "package-lock.json"
       - "tools/**"
       - "workflows/**"
       - "safety/**"
