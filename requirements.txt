@@ -7,8 +7,8 @@ urllib3==2.7.0
 
 # Azure
 azure-identity==1.25.3
-azure-ai-projects==1.1.0
-azure-ai-agents>=1.2.0b5
+azure-ai-projects==2.5.0
+azure-ai-agents==1.2.0b6
 azure-keyvault-secrets==4.11.1
 azure-storage-blob==12.30.0
 azure-cosmos==4.16.3
