@@ -88,7 +88,7 @@ jobs:
           pytest tests/unit/ -v --cov=tools --cov-report=xml --cov-report=html --junitxml=junit.xml
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
           files: ./coverage.xml
           flags: unittests
