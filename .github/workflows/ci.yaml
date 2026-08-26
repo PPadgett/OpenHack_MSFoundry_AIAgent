@@ -327,7 +327,7 @@ jobs:
           python tests/validators/test-deployment-health.py
 
       - name: Create deployment record
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -342,7 +342,7 @@ jobs:
             })
 
       - name: Notify deployment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -367,7 +367,7 @@ jobs:
     if: failure()
     steps:
       - name: Post failure notification
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
