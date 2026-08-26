@@ -4,21 +4,21 @@ This page inventories the current schema and contract files that drive validatio
 
 ## JSON Schema Inventory
 
-| File | Type | Purpose |
-| --- | --- | --- |
+| File                                 | Type        | Purpose                                                          |
+| ------------------------------------ | ----------- | ---------------------------------------------------------------- |
 | schemas/customer-profile.schema.json | Data schema | Long-term customer profile, consent, retention, and audit fields |
 
 ## Tool Contract Inventory
 
-| File | Contract Type | Used By |
-| --- | --- | --- |
-| tools/menu_lookup.json | Tool JSON schema | menu_lookup |
-| tools/allergen_lookup.json | Tool JSON schema | allergen_lookup |
-| tools/price_calc.json | Tool JSON schema | price_calc |
+| File                               | Contract Type    | Used By                 |
+| ---------------------------------- | ---------------- | ----------------------- |
+| tools/menu_lookup.json             | Tool JSON schema | menu_lookup             |
+| tools/allergen_lookup.json         | Tool JSON schema | allergen_lookup         |
+| tools/price_calc.json              | Tool JSON schema | price_calc              |
 | tools/pizza_quantity_estimate.json | Tool JSON schema | pizza_quantity_estimate |
-| tools/order_submit.json | Tool JSON schema | order_submit |
-| tools/order_status.json | Tool JSON schema | order_status |
-| tools/human_handoff.json | Tool JSON schema | human_handoff |
+| tools/order_submit.json            | Tool JSON schema | order_submit            |
+| tools/order_status.json            | Tool JSON schema | order_status            |
+| tools/human_handoff.json           | Tool JSON schema | human_handoff           |
 
 ## Validation Coverage
 

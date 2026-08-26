@@ -45,6 +45,7 @@ flowchart TD
 ## Job Summary
 
 1. Lint and Validate
+
 - Python and Node setup
 - Dependency install
 - make lint
@@ -52,24 +53,29 @@ flowchart TD
 - formatting checks
 
 2. Unit Tests
+
 - pytest unit tests with coverage
 - coverage upload and junit artifacts
 
 3. Security Scanning
+
 - Trivy scan and SARIF upload
 - Semgrep static analysis
 - Bandit scan
 - dependency-check scan
 
 4. Allergen Safety Tests
+
 - guardrail test execution
 - post-run verification script
 
 5. Integration Tests
+
 - runs only on push and schedule
 - uses live API endpoint configuration
 
 6. Deployments
+
 - Staging deployment from develop branch
 - Production deployment from main branch
 

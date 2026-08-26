@@ -64,14 +64,14 @@ This section is the canonical endpoint inventory for Crust and reflects the curr
 - Base URL: `https://func-pizza-api-ceki46omdafoe.azurewebsites.net/`
 - Runtime env var: `PIZZA_API_URL`
 
-| Tool | Method | Endpoint | Purpose |
-| --- | --- | --- | --- |
-| menu_lookup | GET | /api/menu | Retrieve menu items and availability |
-| allergen_lookup | GET | /api/allergens | Retrieve allergen and cross-contact data |
-| price_calc | POST | /api/price | Calculate subtotal, tax, fees, total |
-| order_submit | POST | /api/orders | Submit confirmed order (idempotent via order_id) |
-| order_status | GET | /api/orders/{order_id} | Retrieve order status and ETA |
-| human_handoff | POST | /api/escalations | Escalate to human support |
+| Tool            | Method | Endpoint               | Purpose                                          |
+| --------------- | ------ | ---------------------- | ------------------------------------------------ |
+| menu_lookup     | GET    | /api/menu              | Retrieve menu items and availability             |
+| allergen_lookup | GET    | /api/allergens         | Retrieve allergen and cross-contact data         |
+| price_calc      | POST   | /api/price             | Calculate subtotal, tax, fees, total             |
+| order_submit    | POST   | /api/orders            | Submit confirmed order (idempotent via order_id) |
+| order_status    | GET    | /api/orders/{order_id} | Retrieve order status and ETA                    |
+| human_handoff   | POST   | /api/escalations       | Escalate to human support                        |
 
 ### 3) Registration API (Configured Supporting Service)
 
