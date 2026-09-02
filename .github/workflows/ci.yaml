@@ -312,7 +312,7 @@ jobs:
 
       - name: Set up Azure CLI
         if: env.AZURE_CREDENTIALS_JSON != ''
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           creds: ${{ env.AZURE_CREDENTIALS_JSON }}
 
@@ -344,7 +344,7 @@ jobs:
 
       - name: Set up Azure CLI
         if: env.AZURE_CREDENTIALS_JSON != ''
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           creds: ${{ env.AZURE_CREDENTIALS_JSON }}
 
